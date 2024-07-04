@@ -6,13 +6,39 @@ class Currency {
 }
 
 class CurrencyConverter {
-    constructor() {}
+    constructor(apiUrl) {
+        this.apiUrl = apiUrl;
+        this.currencies = [];
+    }
 
-    getCurrencies(apiUrl) {}
+    async getCurrencies() {
+        const response = await fetch(`${this.apiUrl}/currencies`);
+        const data = await response.json();
+        this.currencies = Object.entries(data).map(([code, name]) => new Currency(code, name));
+    }
 
-    convertCurrency(amount, fromCurrency, toCurrency) {}
-}
+    async convertCurrency(amount, fromCurrency, toCurrency) {
+        if (amount < 0) {
+            alert("Error: no puede ser un monto negativo");
+            return null;
+        }
 
+        if (fromCurrency.code === toCurrency.code) {
+            alert("Error: Seleccionar divisas distintas");
+            return null;
+        }
+    
+        if (fromCurrency.code === toCurrency.code) {
+            return amount;
+        }
+            const response = await fetch(`${this.apiUrl}/latest?amount=${amount}&from=${fromCurrency.code}&to=${toCurrency.code}`);
+            const data = await response.json();
+            return data.rates[toCurrency.code] * amount;
+        }
+    }
+
+        // Podria mejorarse la validacion para el ingreso de datos 
+   
 document.addEventListener("DOMContentLoaded", async () => {
     const form = document.getElementById("conversion-form");
     const resultDiv = document.getElementById("result");

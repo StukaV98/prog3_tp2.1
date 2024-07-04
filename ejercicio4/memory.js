@@ -10,15 +10,15 @@ class Card {
         const cardElement = document.createElement("div");
         cardElement.classList.add("cell");
         cardElement.innerHTML = `
-          <div class="card" data-name="${this.name}">
-              <div class="card-inner">
-                  <div class="card-front"></div>
-                  <div class="card-back">
-                      <img src="${this.img}" alt="${this.name}">
-                  </div>
-              </div>
-          </div>
-      `;
+            <div class="card" data-name="${this.name}">
+                <div class="card-inner">
+                    <div class="card-front"></div>
+                    <div class="card-back">
+                        <img src="${this.img}" alt="${this.name}">
+                    </div>
+                </div>
+            </div>
+        `;
         return cardElement;
     }
 
@@ -30,6 +30,15 @@ class Card {
     #unflip() {
         const cardElement = this.element.querySelector(".card");
         cardElement.classList.remove("flipped");
+    }
+
+    toggleFlip() {
+        this.isFlipped = !this.isFlipped;
+        this.isFlipped ? this.#flip() : this.#unflip();
+    }
+
+    matches(otherCard) {
+        return this.name === otherCard.name;
     }
 }
 
@@ -74,6 +83,26 @@ class Board {
             this.onCardClick(card);
         }
     }
+
+    shuffleCards() {
+        for (let i = this.cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
+        }
+    }
+
+    flipDownAllCards() {
+        this.cards.forEach(card => {
+            card.isFlipped = true;
+            card.toggleFlip();
+        });
+    }
+
+    reset() {
+        this.flipDownAllCards();
+        this.shuffleCards();
+        this.render();
+    }
 }
 
 class MemoryGame {
@@ -90,6 +119,10 @@ class MemoryGame {
         this.flipDuration = flipDuration;
         this.board.onCardClick = this.#handleCardClick.bind(this);
         this.board.reset();
+        this.count = 0;
+        this.points = 0;
+        this.movesCounterElement = document.getElementById("moves-counter");
+        this.pointsCounterElement = document.getElementById("points-counter");
     }
 
     #handleCardClick(card) {
@@ -101,6 +134,32 @@ class MemoryGame {
                 setTimeout(() => this.checkForMatch(), this.flipDuration);
             }
         }
+    }
+
+    checkForMatch() {
+        const [card1, card2] = this.flippedCards;
+        if (card1.matches(card2)) {
+            this.points += 10;
+            this.pointsCounterElement.textContent = `Puntos: ${this.points}`;
+            this.matchedCards.push(card1, card2);
+        } else {
+            card1.toggleFlip();
+            card2.toggleFlip();
+        }
+        this.flippedCards = [];
+        this.count++;
+        this.movesCounterElement.textContent = `Movimientos: ${this.count}`;
+    }
+
+    // Podria mejorarse el sistema de puntuacion ajustandolo al tiempo y a la cantidad de movimientos
+
+    resetGame() {
+        this.board.reset();
+        this.matchedCards = [];
+        this.count = 0;
+        this.points = 0;
+        this.movesCounterElement.textContent = `Movimientos: 0`;
+        this.pointsCounterElement.textContent = `Puntos: 0`;
     }
 }
 
